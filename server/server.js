@@ -2,25 +2,13 @@ const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 
+// ================== DB연결 수행 전 라이브러리 호출 ========================
+const mysql = require("mysql2");
+const db = mysql.createPoolCluster();
+// ================== DB연결 수행 전 라이브러리 호출 ========================
+
 const app = express();
 const port = 4000;
-
-const DB = {
-  user: [
-    {
-      id: "asd",
-      pw: "asd",
-    },
-    {
-      id: "asd123",
-      pw: "asd123",
-    },
-    {
-      id: "fas123",
-      pw: "fas123",
-    },
-  ],
-};
 
 app.use(express.json());
 app.use(
@@ -37,17 +25,42 @@ app.use(
   })
 );
 
-app.get("/", (req, res) => {
-  res.send("HELLO !!");
+db.add("article_project", {
+  host: "127.0.0.1",
+  user: "root",
+  password: "",
+  database: "article_project",
+  port: 3306,
+});
+
+app.get("/", async (req, res) => {
+  const 데이터 = await new Promise(function (resolve, reject) {
+    db.getConnection("article_project", function (error, connection) {
+      if (error) {
+        console.log("디비 연결 오류", error);
+        reject(true);
+      }
+
+      connection.query("SELECT * FROM user", function (error, data) {
+        if (error) {
+          console.log("쿼리 오류", error);
+          reject(true);
+        }
+
+        resolve(data);
+      });
+
+      connection.release();
+    });
+  });
+
+  console.log(데이터);
+
+  res.send("여기로 옵니다!");
 });
 
 app.post("/join", (req, res) => {
   const { id, pw } = req.body;
-
-  DB.user.push({
-    id: id,
-    pw: pw,
-  });
 
   res.send({
     code: "success",
@@ -63,22 +76,6 @@ app.get("/test", (req, res) => {
 
 app.post("/login", (req, res) => {
   const { id, pw } = req.body;
-
-  const user = DB.user;
-
-  /**
-   * find
-   * 회원가입 성공하면
-   * 세션에 findUser를 저장해야findUser
-   */
-  const findUser = user.find((item) => {
-    return item.id === id && item.pw === pw;
-  });
-
-  // 세션 저장 =====================
-  req.session.loginUser = findUser;
-  req.session.save();
-  // 세션 저장 =====================
 
   res.send("/");
 });
