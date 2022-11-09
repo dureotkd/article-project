@@ -59,6 +59,8 @@ function Join() {
 }
 
 function Login() {
+  const navigation = useNavigate();
+
   const [data, setData] = React.useState({
     id: "",
     pw: "",
@@ -77,7 +79,13 @@ function Login() {
       method: "POST",
       data: data,
     })
-      .then((res) => {})
+      .then((res) => {
+        alert(res.data.message);
+
+        if (res.data.code === "success") {
+          window.location.href = "/";
+        }
+      })
       .catch((e) => {
         console.log("로그인에러", e);
       });
@@ -109,8 +117,28 @@ function Main() {
 const StoreContext = React.createContext({});
 
 function App() {
+  const [loginUser, setLoginUser] = React.useState({});
+
+  const 세션정보가져오기 = async () => {
+    await axios({
+      url: "http://localhost:4000/user",
+    }).then((res) => {
+      console.log(res.data);
+
+      setLoginUser(res.data);
+    });
+  };
+
+  React.useEffect(() => {
+    세션정보가져오기();
+  }, []);
+
   return (
-    <StoreContext.Provider value={{}}>
+    <StoreContext.Provider
+      value={{
+        loginUser,
+      }}
+    >
       <Routes>
         <Route exact path="/" element={<Main />} />
         <Route exact path="/login" element={<Login />} />
