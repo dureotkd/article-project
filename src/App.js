@@ -161,6 +161,7 @@ function Article() {
   const { seq } = useParams();
 
   const [article, setArticle] = React.useState({});
+  const [reply, setReply] = React.useState([]);
 
   const 게시판상세정보가져오기 = async () => {
     await axios({
@@ -169,7 +170,8 @@ function Article() {
         seq: seq,
       },
     }).then((response) => {
-      setArticle(response.data);
+      setArticle(response.data.article);
+      setReply(response.data.reply);
     });
   };
 
@@ -178,8 +180,32 @@ function Article() {
   }, []);
 
   /**
-   * 게시글 상세정보를 가져와주세요
+   * 댓글 불러오기
+   * 1. article_row 서버 호출할떄 댓글 정보까지 같이 가져오기 !!
    */
+
+  /**
+   * 댓글 저장
+   * 1. state에다가 댓글을 담는다
+   * 2. 서버에 요청
+   * 3. 댓글테이블에 등록
+   */
+
+  const [replyText, setReplyText] = React.useState("");
+  const 댓글정보저장 = (event) => {
+    setReplyText(event.target.value);
+  };
+
+  const 댓글쓰기 = async () => {
+    await axios({
+      url: "http://localhost:4000/reply",
+      method: "POST",
+      data: {
+        replyText: replyText,
+        seq: seq,
+      },
+    }).then((response) => {});
+  };
 
   return (
     <div className="ui-wrap">
@@ -192,12 +218,17 @@ function Article() {
         <h3>댓글</h3>
 
         <div className="ui-reply">
-          <div>댓글이 없습니다</div>
+          {reply.length > 0 &&
+            reply.map((item, index) => {
+              return <div>{item.body}</div>;
+            })}
         </div>
 
         <form className="ui-reply-form">
-          <textarea></textarea>
-          <button className="ui-blue-button">댓글쓰기</button>
+          <textarea onChange={댓글정보저장}></textarea>
+          <button type="button" className="ui-blue-button" onClick={댓글쓰기}>
+            댓글쓰기
+          </button>
         </form>
       </div>
     </div>
