@@ -63,8 +63,20 @@ app.get("/", async (req, res) => {
   res.send("여기로 옵니다!");
 });
 
+app.get("/article_row", async (req, res) => {
+  const { seq } = req.query;
+
+  const query = `SELECT * FROM article WHERE seq = '${seq}'`;
+  const article = await 디비실행(query);
+
+  res.send(article[0]);
+});
+
 app.get("/article", async (req, res) => {
-  const article = await 디비실행(`SELECT * FROM article`);
+  const query = `SELECT * FROM article , user WHERE article.user_seq = user.seq`;
+
+  const article = await 디비실행(query);
+
   res.send(article);
 });
 
