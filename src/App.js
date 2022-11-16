@@ -1,6 +1,6 @@
 import axios from "axios";
 import React from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useParams } from "react-router-dom";
 import "./App.css";
 
 // 도메인 달라도 쿠키공유해줄게
@@ -157,9 +157,56 @@ function Login() {
   );
 }
 
-function Main() {
-  const { loginUser } = React.useContext(StoreContext);
+function Article() {
+  const { seq } = useParams();
 
+  const [article, setArticle] = React.useState({});
+
+  const 게시판상세정보가져오기 = async () => {
+    await axios({
+      url: "http://localhost:4000/article_row",
+      params: {
+        seq: seq,
+      },
+    }).then((response) => {
+      setArticle(response.data);
+    });
+  };
+
+  React.useEffect(() => {
+    게시판상세정보가져오기();
+  }, []);
+
+  /**
+   * 게시글 상세정보를 가져와주세요
+   */
+
+  return (
+    <div className="ui-wrap">
+      <div className="ui-body-wrap">
+        <h2>{article.title}</h2>
+        <div className="ui-body">
+          <p>{article.body}</p>
+        </div>
+
+        <h3>댓글</h3>
+
+        <div className="ui-reply">
+          <div>댓글이 없습니다</div>
+        </div>
+
+        <form className="ui-reply-form">
+          <textarea></textarea>
+          <button className="ui-blue-button">댓글쓰기</button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function Main() {
+  const navigation = useNavigate();
+  const { loginUser } = React.useContext(StoreContext);
   const [article, setArticle] = React.useState([]);
 
   /**
@@ -182,10 +229,17 @@ function Main() {
     게시글정보가져와();
   }, []);
 
+  const 글등록페이지이동 = () => {
+    navigation("/write");
+  };
+
   return (
-    <div>
-      <h2>{loginUser.nickname}님 안녕하세요!</h2>
-      <table>
+    <div className="ui-wrap">
+      {/* <h2>{loginUser.nickname}님 안녕하세요!</h2> */}
+      <button className="ui-green-button" onClick={글등록페이지이동}>
+        글등록
+      </button>
+      <table className="ui-table">
         <thead>
           <tr>
             <th>제목</th>
@@ -195,12 +249,12 @@ function Main() {
         </thead>
         <tbody>
           {article.length > 0 &&
-            article.map((item) => {
+            article.map((item, index) => {
               return (
-                <tr key={item.seq}>
-                  <th>{item.title}</th>
-                  <th>{item.body}</th>
-                  <th>{item.user_seq}</th>
+                <tr key={index}>
+                  <td>{item.title}</td>
+                  <td>{item.body}</td>
+                  <td>{item.nickname}</td>
                 </tr>
               );
             })}
@@ -246,6 +300,7 @@ function App() {
         <Route exact path="/login" element={<Login />} />
         <Route exact path="/join" element={<Join />} />
         <Route exact path="/write" element={<Write />} />
+        <Route exact path="/article/:seq" element={<Article />} />
       </Routes>
     </StoreContext.Provider>
   );
